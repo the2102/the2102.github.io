@@ -325,6 +325,24 @@
   .contact{background:var(--hb)!important;border-radius:6px!important}
   .contact .mail{border-bottom-color:var(--hb2)!important}
   @media (max-width:820px){.hero{padding:64px 20px 56px!important}.hero::after{display:none}}
+
+  .mono-av{background:none!important;width:150px!important;height:150px!important;padding:0!important;overflow:hidden;border-radius:50%;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+  .mono-av .bot{width:100%;height:100%;display:block}
+  .bot .wave{transform-box:view-box;transform-origin:165px 194px;animation:wave 2.6s ease-in-out infinite}
+  .bot .eye{transform-box:fill-box;transform-origin:center;animation:blink 4.5s infinite}
+  @keyframes wave{0%,60%,100%{transform:rotate(0)}70%{transform:rotate(-14deg)}80%{transform:rotate(8deg)}90%{transform:rotate(-10deg)}}
+  @keyframes blink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}
+  @media (prefers-reduced-motion:reduce){.bot .wave,.bot .eye{animation:none}}
+  @media (max-width:820px){.mono-av{width:112px!important;height:112px!important}}
+
+  .sgrid{display:grid;grid-template-columns:1fr 1fr;gap:28px}
+  .sitem{display:grid;grid-template-columns:1fr;gap:18px;justify-items:center;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:18px;box-shadow:var(--shadow)}
+  .sitem .sframe{max-width:280px}
+  .sitem .scap{padding:0 6px;width:100%}
+  .sitem .scap h3{font-size:20px}
+  .sitem .scap p{font-size:14px}
+  @media (max-width:980px){.sgrid{grid-template-columns:1fr}}
+  @media (max-width:560px){.sitem{grid-template-columns:1fr}.sitem .sframe{max-width:280px;margin:0 auto}}
 </style>
 </head>
 <body>
@@ -348,12 +366,35 @@
   <div class="hero-l">
     <div class="tag"><i></i>Robot Productization · Commercialization · Service</div>
     <h1>로봇 기술을 <em>제품</em>으로,<br>제품을 <em>사업</em>으로.</h1>
-    <p class="lead-h">안녕하세요, <b>진우종</b>입니다. 현대자동차 로보틱스랩에서 현대자동차 최초 로봇제품 양산 프로젝트를 맡고 있고, KAIST 기술경영전문대학원(I&amp;TM)에서 기술 사업화를 공부합니다.</p>
+    <p class="lead-h">안녕하세요, <b>진우종</b>입니다. 현대자동차 로보틱스랩에서 로봇 제품화와 사업화를 맡고 있고, KAIST 기술경영전문대학원(I&amp;TM)에서 기술 사업화를 공부합니다.</p>
     <div class="cta"><a class="b1" href="#projects">프로젝트 보기</a><a class="b2" href="#contact">Contact</a></div>
   </div>
   <div class="hero-r" aria-hidden="true">
     <div class="idcard">
-      <div class="mono-av">진</div>
+      <div class="mono-av"><svg class="bot" viewBox="0 0 200 200" aria-label="로봇 캐릭터">
+  <defs>
+    <radialGradient id="rbH" cx="38%" cy="30%" r="75%"><stop offset="0" stop-color="#ffffff"/><stop offset=".6" stop-color="#eef1f5"/><stop offset="1" stop-color="#c9d0da"/></radialGradient>
+    <linearGradient id="rbE" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e9edf2"/><stop offset="1" stop-color="#aab3bf"/></linearGradient>
+    <linearGradient id="rbV" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3b4c63"/><stop offset="1" stop-color="#1a2638"/></linearGradient>
+    <radialGradient id="rbBg" cx="50%" cy="45%" r="60%"><stop offset="0" stop-color="#c8ecf7"/><stop offset="1" stop-color="#7cc6dd"/></radialGradient>
+    <filter id="rbG" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <circle cx="100" cy="100" r="100" fill="url(#rbBg)"/>
+  
+  <path d="M52 200c4-30 22-46 48-46s44 16 48 46z" fill="url(#rbH)"/>
+  <rect x="86" y="140" width="28" height="18" rx="6" fill="url(#rbE)"/>
+  <rect x="28" y="72" width="22" height="50" rx="11" fill="url(#rbE)"/><rect x="150" y="72" width="22" height="50" rx="11" fill="url(#rbE)"/>
+  <rect x="36" y="44" width="128" height="104" rx="46" fill="url(#rbH)"/>
+  <ellipse cx="80" cy="58" rx="30" ry="9" fill="#fff" opacity=".7"/>
+  <rect x="54" y="66" width="92" height="64" rx="26" fill="url(#rbV)"/>
+  <rect x="60" y="70" width="80" height="14" rx="7" fill="#fff" opacity=".07"/>
+  <g class="wave" transform="translate(12 14)"><rect x="146" y="150" width="15" height="32" rx="7" fill="url(#rbE)" transform="rotate(-14 153 166)"/><ellipse cx="156" cy="140" rx="13" ry="16" fill="url(#rbH)" transform="rotate(-14 156 140)"/><path d="M147 130q-2-9 4-12M154 126q0-9 5-11M161 128q2-8 7-8" stroke="#dfe4ea" stroke-width="5" stroke-linecap="round" fill="none"/></g>
+  <g filter="url(#rbG)" fill="#e8fbff">
+    <rect class="eye" x="77" y="84" width="11" height="20" rx="5.5"/>
+    <rect class="eye" x="112" y="84" width="11" height="20" rx="5.5"/>
+    <path d="M89 112q11 9 22 0" fill="none" stroke="#e8fbff" stroke-width="4.5" stroke-linecap="round"/>
+  </g>
+</svg></div>
       <b>진우종</b><span class="mono">JIN UJONG</span>
       <ul><li>현대자동차 로보틱스랩 책임연구원</li><li>KAIST I&amp;TM 석사과정</li></ul>
       <div class="chips2"><span>Industrial</span><span>Cobot</span><span>Mobile</span><span>Humanoid</span></div>
@@ -368,7 +409,6 @@
       <div><span class="k">이름</span><b>진우종 (JIN UJONG)</b></div>
       <div><span class="k">소속 1</span><b>현대자동차 로보틱스랩 · 책임연구원</b></div>
       <div><span class="k">소속 2</span><b>KAIST 기술경영전문대학원(I&amp;TM) 석사과정</b></div>
-      <div><span class="k">담당 프로젝트</span><b>현대자동차 최초 로봇제품 양산 프로젝트</b></div>
       <div><span class="k">이메일</span><a href="mailto:the2102@gmail.com">the2102@gmail.com</a></div>
     </div>
     <div class="atext">
@@ -411,18 +451,15 @@
 </section>
 
 <section id="global" class="wrap reveal">
-  <div class="sec-head"><span class="eb">CAREER HIGHLIGHT</span><h2>특이 커리어</h2><p class="ss">현장에서 로봇을 움직여 온 기록입니다.</p></div>
-  <div class="shorts-row">
-    <div class="shorts">
-      <div class="sframe" id="sframe">
-        <button class="splay" id="splay" aria-label="영상 재생"><img src="https://i.ytimg.com/vi/pJZccfu5lC4/hqdefault.jpg" alt=""><span class="pb">▶</span><span class="sl">가야금 로봇 · 1분</span></button>
-      </div>
+  <div class="sec-head"><span class="eb">CAREER HIGHLIGHT</span><h2>특이 커리어</h2><p class="ss">현장에서 로봇을 움직여 온 기록입니다. 영상을 누르면 핵심 1분이 재생됩니다.</p></div>
+  <div class="sgrid">
+    <div class="sitem">
+      <div class="sframe"><button class="splay" data-v="HVdXAnr05OA" data-s="50" data-e="110" aria-label="MobED — 모바일 로봇 플랫폼 영상 재생"><img src="https://i.ytimg.com/vi/HVdXAnr05OA/hqdefault.jpg" alt=""><span class="pb">▶</span><span class="sl">MobED · 1분</span></button></div>
+      <div class="scap"><span class="eb">SHOWCASE</span><h3>MobED — 모바일 로봇 플랫폼</h3><p>“Go Anywhere, Do Anything, For Everyone.” 현대자동차그룹 로보틱스랩의 소형 모빌리티 플랫폼 MobED. 편심 휠 기반 구동부가 다양한 서비스로 확장되는 장면(0:50–1:50)입니다.</p><p class="src">영상: 현대자동차그룹 공식 유튜브 · <a href="https://www.youtube.com/watch?v=HVdXAnr05OA" target="_blank" rel="noopener">원본 보기 ↗</a></p></div>
     </div>
-    <div class="scap card">
-      <span class="eb">SHOWCASE</span>
-      <h3>로봇과 사람의 가야금 합주</h3>
-      <p>사람의 연주를 따라 가야금을 타는 로봇. 서울로봇인공지능과학관 개관을 앞두고 공개된 협업 퍼포먼스 영상의 가야금 연주 구간(1:35–2:35)입니다.</p>
-      <p class="src">영상: 서울시 공식 유튜브 채널 · <a href="https://www.youtube.com/watch?v=pJZccfu5lC4" target="_blank" rel="noopener">원본 보기 ↗</a></p>
+    <div class="sitem">
+      <div class="sframe"><button class="splay" data-v="pJZccfu5lC4" data-s="95" data-e="155" aria-label="로봇과 사람의 가야금 합주 영상 재생"><img src="https://i.ytimg.com/vi/pJZccfu5lC4/hqdefault.jpg" alt=""><span class="pb">▶</span><span class="sl">가야금 로봇 · 1분</span></button></div>
+      <div class="scap"><span class="eb">SHOWCASE</span><h3>로봇과 사람의 가야금 합주</h3><p>사람의 연주를 따라 가야금을 타는 로봇. 서울로봇인공지능과학관 개관을 앞두고 공개된 협업 퍼포먼스 영상의 가야금 연주 구간(1:35–2:35)입니다.</p><p class="src">영상: 서울시 공식 유튜브 · <a href="https://www.youtube.com/watch?v=pJZccfu5lC4" target="_blank" rel="noopener">원본 보기 ↗</a></p></div>
     </div>
   </div>
 </section>
@@ -554,9 +591,9 @@
     function unfocus(){svg.classList.remove('focus');svg.querySelectorAll('.dim,.on').forEach(e=>e.classList.remove('dim','on'));}
   })();
 
-  (function(){const b=document.getElementById('splay');if(!b)return;b.addEventListener('click',()=>{const f=document.createElement('iframe');
-    f.src='https://www.youtube-nocookie.com/embed/pJZccfu5lC4?start=95&end=155&autoplay=1&playsinline=1&rel=0&modestbranding=1&controls=1';
-    f.allow='autoplay; encrypted-media; picture-in-picture';f.title='가야금 로봇 연주';b.replaceWith(f);});})();
+  document.querySelectorAll('.splay').forEach(b=>b.addEventListener('click',()=>{const f=document.createElement('iframe');
+    f.src=`https://www.youtube-nocookie.com/embed/${b.dataset.v}?start=${b.dataset.s}&end=${b.dataset.e}&autoplay=1&playsinline=1&rel=0&modestbranding=1`;
+    f.allow='autoplay; encrypted-media; picture-in-picture';f.title=b.getAttribute('aria-label');b.replaceWith(f);}));
 </script>
 </body>
 </html>
