@@ -335,14 +335,16 @@
   @media (prefers-reduced-motion:reduce){.bot .wave,.bot .eye{animation:none}}
   @media (max-width:820px){.mono-av{width:112px!important;height:112px!important}}
 
-  .sgrid{display:grid;grid-template-columns:1fr 1fr;gap:28px}
-  .sitem{display:grid;grid-template-columns:1fr;gap:18px;justify-items:center;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:18px;box-shadow:var(--shadow)}
+  .sgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+  .sitem{display:grid;grid-template-columns:1fr;align-content:start;gap:18px;justify-items:center;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:18px;box-shadow:var(--shadow)}
   .sitem .sframe{max-width:280px}
   .sitem .scap{padding:0 6px;width:100%}
   .sitem .scap h3{font-size:20px}
   .sitem .scap p{font-size:14px}
-  @media (max-width:980px){.sgrid{grid-template-columns:1fr}}
+  @media (max-width:980px){.sgrid{grid-template-columns:1fr 1fr}}
+  @media (max-width:640px){.sgrid{grid-template-columns:1fr}}
   @media (max-width:560px){.sitem{grid-template-columns:1fr}.sitem .sframe{max-width:280px;margin:0 auto}}
+
 </style>
 </head>
 <body>
@@ -460,6 +462,10 @@
     <div class="sitem">
       <div class="sframe"><button class="splay" data-v="pJZccfu5lC4" data-s="95" data-e="155" aria-label="로봇과 사람의 가야금 합주 영상 재생"><img src="https://i.ytimg.com/vi/pJZccfu5lC4/hqdefault.jpg" alt=""><span class="pb">▶</span><span class="sl">가야금 로봇 · 1분</span></button></div>
       <div class="scap"><span class="eb">SHOWCASE</span><h3>로봇과 사람의 가야금 합주</h3><p>사람의 연주를 따라 가야금을 타는 로봇. 서울로봇인공지능과학관 개관을 앞두고 공개된 협업 퍼포먼스 영상의 가야금 연주 구간(1:35–2:35)입니다.</p><p class="src">영상: 서울시 공식 유튜브 · <a href="https://www.youtube.com/watch?v=pJZccfu5lC4" target="_blank" rel="noopener">원본 보기 ↗</a></p></div>
+    </div>
+    <div class="sitem">
+      <div class="sframe"><button class="splay" data-v="zbEE5jhrZKs" data-s="194" data-e="260" aria-label="의료용 협동로봇 — 복강경 수술 보조 영상 재생"><img src="https://i.ytimg.com/vi/zbEE5jhrZKs/hqdefault.jpg" alt=""><span class="pb">▶</span><span class="sl">의료 협동로봇 · 1분</span></button></div>
+      <div class="scap"><span class="eb">SHOWCASE</span><h3>의료용 협동로봇</h3><p>“생산보다 사람을 위해 만들어져야 할 기계.” 협동로봇이 실제 복강경 수술 보조에 투입된 사례. 토크센서 기반 정밀 제어와 사람과의 안전한 협업을 설명하는 구간(3:14–4:20)입니다.</p><p class="src">영상: 두산픽처스 공식 유튜브 · <a href="https://www.youtube.com/watch?v=zbEE5jhrZKs" target="_blank" rel="noopener">원본 보기 ↗</a></p></div>
     </div>
   </div>
 </section>
