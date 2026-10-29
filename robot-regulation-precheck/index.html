@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>로봇 규제·인증 사전검토</title>
+<meta name="description" content="로봇 사양을 넣으면 한국에서 걸리는 규제·인증을 여러 법령에 걸쳐 판정하는 Claude 스킬 소개">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap">
+<style>
+/* 홈페이지(the2102.github.io)와 같은 계열: 네이비 히어로 + 아이보리 바탕 + 하늘색 머리말 + 각진 카드 */
+:root{
+  --bg:#f6f3f2; --surface:#ffffff; --ink:#0f172a; --muted:#475569; --line:#e0dad4;
+  --accent:#002c5f; --accent-soft:#e4dcd3; --cyan:#00aad2; --hb:#002c5f;
+  --code:#efeae5;
+  --req:#b4372b; --req-soft:#f8e6e3; --rev:#9a6410; --rev-soft:#f7eedb; --na:#6b7480; --na-soft:#ebe8e4;
+  --hint:#4b5ea8; --hint-soft:#e9ecf8;
+  --shadow:0 1px 2px rgba(15,23,42,.04),0 8px 24px rgba(15,23,42,.06);
+  --font:"Pretendard","Noto Sans KR",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0b1120; --surface:#131b2e; --ink:#e2e8f0; --muted:#94a3b8; --line:#23304a;
+  --accent:#7fb6e8; --accent-soft:#1c2a40; --code:#0f1729;
+  --req:#ef8a7e; --req-soft:#3a1f1c; --rev:#e2b462; --rev-soft:#352a17; --na:#98a3b1; --na-soft:#1f2836;
+  --hint:#a7b5f0; --hint-soft:#202744; --shadow:0 8px 24px rgba(0,0,0,.25); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0b1120; --surface:#131b2e; --ink:#e2e8f0; --muted:#94a3b8; --line:#23304a;
+  --accent:#7fb6e8; --accent-soft:#1c2a40; --code:#0f1729;
+  --req:#ef8a7e; --req-soft:#3a1f1c; --rev:#e2b462; --rev-soft:#352a17; --na:#98a3b1; --na-soft:#1f2836;
+  --hint:#a7b5f0; --hint-soft:#202744; --shadow:0 8px 24px rgba(0,0,0,.25); color-scheme:dark}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);color:var(--ink);line-height:1.7;font-size:15.5px;-webkit-font-smoothing:antialiased;word-break:keep-all}
+a{color:var(--accent);text-underline-offset:3px}
+a:focus-visible,summary:focus-visible,button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.wrap{max-width:1040px;margin:0 auto;padding:0 24px}
+.mono{font-family:var(--mono);letter-spacing:.03em}
+.muted{color:var(--muted)}
+h1,h2,h3,h4{text-wrap:balance}
+
+/* 상단바 */
+nav{position:sticky;top:0;z-index:10;background:#fff;border-bottom:1px solid var(--line)}
+:root[data-theme="dark"] nav{background:#0b1120}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) nav{background:#0b1120}}
+nav .wrap{display:flex;align-items:center;gap:22px;height:60px}
+.logo{font-weight:800;text-decoration:none;font-size:15px;color:var(--ink);white-space:nowrap;margin-right:auto}
+.logo span{color:var(--cyan)}
+.links{display:flex;gap:20px;align-items:center}
+.links a{text-decoration:none;font-size:14px;color:var(--muted);white-space:nowrap}
+.links a:hover{color:var(--ink)}
+#theme{flex:none;background:none;border:1px solid var(--line);color:var(--ink);border-radius:2px;width:34px;height:34px;cursor:pointer;font-size:15px}
+
+/* 히어로 */
+.hero{position:relative;background:var(--hb);color:#fff;overflow:hidden}
+.hero::after{content:"";position:absolute;right:-12%;top:-30%;width:62%;height:160%;background:linear-gradient(115deg,transparent 0 38%,rgba(0,170,210,.16) 38% 52%,transparent 52%);pointer-events:none}
+.hero .wrap{position:relative;z-index:1;display:grid;grid-template-columns:1.25fr .9fr;gap:48px;align-items:center;padding-top:96px;padding-bottom:88px}
+.tag{display:inline-flex;gap:8px;align-items:center;font-size:12.5px;font-weight:600;letter-spacing:.06em;color:#cfe9f5;background:rgba(255,255,255,.1);padding:6px 12px;border-radius:3px;margin-bottom:28px}
+.tag i{width:7px;height:7px;border-radius:50%;background:var(--cyan);animation:pulse 2s infinite}
+@keyframes pulse{50%{opacity:.3}}
+.hero h1{font-size:clamp(34px,5.4vw,58px);line-height:1.18;font-weight:800;letter-spacing:-.035em}
+.hero h1 em{font-style:normal;color:#7fd8f0}
+.lead{margin-top:22px;font-size:clamp(16px,2vw,18.5px);color:rgba(255,255,255,.78);max-width:560px}
+.lead b{color:#fff}
+.cta{display:flex;flex-wrap:wrap;gap:10px;margin-top:30px}
+.cta a{text-decoration:none;font-weight:700;font-size:15px;padding:13px 22px;border-radius:2px;letter-spacing:.02em}
+.cta .b1{background:#fff;color:var(--hb)}
+.cta .b1::after{content:"  →"}
+.cta .b2{color:#fff;border:1px solid rgba(255,255,255,.5)}
+.idcard{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);border-radius:6px;padding:30px 28px;backdrop-filter:blur(6px);display:flex;flex-direction:column;gap:18px}
+.idcard .lbl{font-size:11px;font-weight:700;letter-spacing:.2em;color:#7fd8f0}
+.idcard .name{font-family:var(--mono);font-size:15px;color:#fff;word-break:break-all}
+.idcard dl{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;font-size:14px}
+.idcard dt{color:rgba(255,255,255,.6)} .idcard dd{color:#fff;font-weight:600}
+.big-t{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 12px;padding:16px 0;border-top:1px solid rgba(255,255,255,.18);border-bottom:1px solid rgba(255,255,255,.18)}
+.big-t s{white-space:nowrap;text-decoration:none;font-size:20px;color:rgba(255,255,255,.6)}
+.big-t b{white-space:nowrap;font-size:34px;font-weight:800;letter-spacing:-.03em;color:#fff}
+.big-t span{font-size:12px;color:rgba(255,255,255,.6);margin-left:auto;text-align:right}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips span{font-size:12px;padding:4px 10px;border-radius:3px;background:rgba(255,255,255,.12);color:#fff;font-weight:600}
+
+/* 섹션 */
+section.wrap{padding-top:104px}
+.sec-head{margin-bottom:32px}
+.eb{display:flex;align-items:center;gap:12px;font-size:12px;font-weight:700;letter-spacing:.2em;color:var(--cyan)}
+.eb::before{content:"";width:28px;height:2px;background:var(--cyan)}
+.sec-head h2{font-size:clamp(26px,3.8vw,38px);font-weight:800;letter-spacing:-.03em;line-height:1.3;margin-top:8px;color:var(--accent)}
+:root[data-theme="dark"] .sec-head h2{color:var(--ink)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .sec-head h2{color:var(--ink)}}
+.ss{color:var(--muted);font-size:15.5px;margin-top:10px;max-width:720px}
+.stack{display:flex;flex-direction:column;gap:18px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:26px 28px;box-shadow:var(--shadow);min-width:0}
+.label{font-size:12px;font-weight:700;letter-spacing:.06em;color:var(--accent)}
+:root[data-theme="dark"] .label{color:var(--cyan)}
+.card h3{font-size:20px;letter-spacing:-.01em;margin-top:6px}
+.card p{color:var(--muted);font-size:15px;margin-top:6px}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.card.on{border-top:3px solid var(--cyan)}
+.laws{display:flex;flex-wrap:wrap;gap:6px}
+.laws span{font-size:13px;font-weight:600;padding:5px 11px;border-radius:3px;background:var(--accent-soft);color:var(--accent)}
+p.body{color:var(--muted);font-size:16px;line-height:1.85;max-width:780px}
+p.body b{color:var(--ink)}
+
+/* 단계 */
+.steps{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.step{display:grid;grid-template-columns:auto 1fr;gap:16px;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:20px 22px;box-shadow:var(--shadow)}
+.step .no{font-family:var(--mono);font-size:12px;color:var(--cyan);padding-top:3px;font-weight:600}
+.step h4{font-size:16px}
+.step p{font-size:14px;color:var(--muted);margin-top:4px}
+.axes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.axis{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:6px;padding:16px 18px}
+.axis b{display:block;font-size:15px}
+.axis span{font-size:13.5px;color:var(--muted)}
+.legend{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;font-size:13.5px;color:var(--muted)}
+.legend>span{display:inline-flex;gap:8px;align-items:center}
+
+/* 판정 표시 */
+.stamp{display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:12.5px;padding:2px 9px;border-radius:3px;white-space:nowrap}
+.stamp::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.s-req{color:var(--req);background:var(--req-soft)} .s-rev{color:var(--rev);background:var(--rev-soft)} .s-na{color:var(--na);background:var(--na-soft)}
+.tag-hint{display:inline-block;font-weight:700;font-size:12.5px;color:var(--hint);background:var(--hint-soft);padding:1px 7px;border-radius:3px;margin-right:6px}
+
+/* 예시 */
+.ex{display:flex;flex-direction:column;gap:18px}
+.ex-h{display:flex;flex-direction:column;gap:4px}
+.ex-h h3{font-size:22px;margin:0}
+.spec{font-size:14.5px;line-height:1.75;background:var(--code);border-left:3px solid var(--cyan);padding:14px 18px;border-radius:2px;white-space:pre-wrap;word-break:break-word;color:var(--ink)}
+.spec .cmd{font-family:var(--mono);color:var(--accent);font-weight:600}
+:root[data-theme="dark"] .spec .cmd{color:var(--cyan)}
+.qa{display:grid;grid-template-columns:max-content 1fr;gap:8px 18px;font-size:14.5px;padding:16px 20px;background:var(--bg);border:1px solid var(--line);border-radius:6px}
+.qa dt{color:var(--muted)} .qa dd{font-weight:700}
+.tally{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;font-size:13.5px}
+.tally .label{margin-right:4px}
+.quote{border-left:3px solid var(--accent);padding:6px 0 6px 16px;font-size:15.5px;color:var(--ink);max-width:780px}
+.quote.hint{border-left-color:var(--hint)}
+.note{font-size:13px;color:var(--muted)}
+
+/* 표 */
+.tbl{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:6px;box-shadow:var(--shadow)}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:620px}
+th,td{text-align:left;vertical-align:top;padding:12px 14px;border-bottom:1px solid var(--line)}
+th{font-size:12px;font-weight:700;letter-spacing:.06em;color:var(--muted);background:var(--bg)}
+tr:last-child td{border-bottom:0}
+td.num{white-space:nowrap;font-weight:700}
+
+/* 숫자 */
+.counts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.count{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:22px 24px;box-shadow:var(--shadow)}
+.count b{display:block;font-size:40px;font-weight:800;letter-spacing:-.03em;line-height:1.1;color:var(--accent)}
+:root[data-theme="dark"] .count b{color:var(--ink)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .count b{color:var(--ink)}}
+.count span{font-size:13px;color:var(--muted)}
+.ba{display:grid;grid-template-columns:1fr auto 1fr;gap:20px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:26px 32px;box-shadow:var(--shadow)}
+.ba .side span{display:block;font-size:12px;color:var(--muted)}
+.ba .side b{font-size:34px;font-weight:800;letter-spacing:-.03em}
+.ba .side.after b{color:var(--cyan)}
+.ba .arrow{font-size:28px;color:var(--muted)}
+.ba .side.after{text-align:right}
+
+/* 버전 흐름 */
+.loop{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.loop .v{background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--accent);border-radius:6px;padding:18px 20px;box-shadow:var(--shadow)}
+.loop .v:last-child{border-top-color:var(--cyan)}
+.loop .ver{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--accent)}
+:root[data-theme="dark"] .loop .ver{color:var(--cyan)}
+.loop p{font-size:14px;color:var(--muted);margin-top:6px}
+
+/* 마무리 띠 */
+.band{margin-top:104px;background:var(--hb);color:#fff;border-radius:6px;padding:52px 48px;position:relative;overflow:hidden}
+.band::after{content:"";position:absolute;right:-20%;top:-40%;width:60%;height:180%;background:linear-gradient(115deg,transparent 0 40%,rgba(0,170,210,.14) 40% 54%,transparent 54%);pointer-events:none}
+.band>*{position:relative}
+.band h2{font-size:clamp(24px,3.4vw,34px);font-weight:800;letter-spacing:-.03em;margin-top:8px}
+.band ul{list-style:none;margin-top:22px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 28px}
+.band li{padding-left:18px;position:relative;color:rgba(255,255,255,.85);font-size:15px}
+.band li::before{content:"";position:absolute;left:0;top:.7em;width:6px;height:6px;background:var(--cyan)}
+
+details{background:var(--surface);border:1px solid var(--line);border-radius:6px;box-shadow:var(--shadow)}
+summary{cursor:pointer;padding:16px 20px;font-weight:700;font-size:15px}
+details pre{padding:18px 20px;border-top:1px solid var(--line);font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;word-break:break-word;background:var(--code);color:var(--ink)}
+footer.wrap{padding-top:64px;padding-bottom:44px}
+footer{font-size:12.5px;color:var(--muted);text-align:center;display:flex;flex-direction:column;gap:4px}
+
+@media (max-width:820px){
+  nav .wrap{gap:12px}
+  .logo{margin-right:0}
+  .links{gap:14px;overflow-x:auto;scrollbar-width:none;flex:1;min-width:0;-webkit-mask-image:linear-gradient(90deg,#000 85%,transparent)}
+  .links::-webkit-scrollbar{display:none}
+  .links a{font-size:13px}
+  .hero .wrap{grid-template-columns:1fr;gap:28px;padding-top:56px;padding-bottom:56px}
+  .hero::after{display:none}
+  .grid2,.grid3,.steps,.axes,.loop,.band ul{grid-template-columns:1fr}
+  .counts{grid-template-columns:1fr 1fr}
+  section.wrap{padding-top:76px}
+  .card{padding:22px}
+  .band{padding:40px 24px;margin-top:76px}
+  .ba{grid-template-columns:1fr;text-align:left;padding:22px}
+  .ba .side.after{text-align:left}
+  .ba .arrow{transform:rotate(90deg);justify-self:start}
+}
+@media (max-width:520px){.big-t span{margin-left:0;text-align:left;width:100%}.qa{grid-template-columns:1fr}.qa dd{margin-bottom:6px}.counts{grid-template-columns:1fr}}
+@media (max-width:420px){.wrap{padding-left:16px;padding-right:16px}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.tag i{animation:none}}
+@media print{nav{display:none}.hero,.band{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+
+/* 직접 체험 */
+.try{display:grid;grid-template-columns:minmax(0,.72fr) minmax(0,1.5fr);gap:20px;align-items:start}
+.form{position:sticky;top:76px;display:flex;flex-direction:column;gap:16px}
+.presets{display:flex;flex-wrap:wrap;gap:6px}
+.presets button{font:inherit;font-size:13px;font-weight:600;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:3px;padding:6px 10px;cursor:pointer}
+.presets button:hover,.presets button[aria-pressed="true"]{border-color:var(--cyan);color:var(--accent)}
+.presets button[aria-pressed="true"]{background:var(--accent-soft)}
+.fld{display:flex;flex-direction:column;gap:6px}
+.fld>span{font-size:13px;font-weight:700;color:var(--muted)}
+.fld select,.fld input[type=number]{font:inherit;font-size:14.5px;padding:8px 10px;border:1px solid var(--line);border-radius:4px;background:var(--bg);color:var(--ink);width:100%}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.checks{display:flex;flex-direction:column;gap:7px}
+.checks label{display:flex;gap:8px;align-items:flex-start;font-size:14px;cursor:pointer}
+.checks input{margin-top:4px;accent-color:var(--accent)}
+.checks label.off{opacity:.45}
+.privacy{font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padding-top:12px}
+.out{display:flex;flex-direction:column;gap:16px}
+.out-h{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between}
+.types{display:flex;flex-wrap:wrap;gap:6px}
+.types span{font-size:12.5px;font-weight:700;padding:3px 10px;border-radius:3px;background:var(--accent);color:#fff}
+:root[data-theme="dark"] .types span{color:#0b1120}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .types span{color:#0b1120}}
+.out table{min-width:520px}
+.out td:first-child{width:96px}
+.out td:nth-child(2){width:28%}
+.out td:nth-child(3){width:40%}
+.out .who{display:block;margin-top:4px;font-size:12px;color:var(--muted);font-weight:400}
+.s-ref{color:var(--hint);background:var(--hint-soft)}
+.refs a,.refs span{display:block;font-size:13px}
+.refs span{color:var(--muted)}
+.box{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:16px 18px}
+.box h4{font-size:14.5px;margin-bottom:8px}
+.box ul{list-style:none;display:flex;flex-direction:column;gap:6px;font-size:14px;color:var(--muted)}
+.box li{padding-left:14px;position:relative}
+.box li::before{content:"";position:absolute;left:0;top:.65em;width:5px;height:5px;background:var(--cyan)}
+.box.chk li::before{background:var(--rev)}
+.todo{display:inline-block;margin-top:4px;font-size:11.5px;font-weight:700;color:var(--rev);background:var(--rev-soft);padding:0 6px;border-radius:3px;white-space:nowrap}
+.vs{font-size:13px;color:var(--muted);border-left:3px solid var(--hint);padding:4px 0 4px 12px}
+@media (max-width:820px){.try{grid-template-columns:1fr}.form{position:static}}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a href="https://the2102.github.io/" class="logo">JIN UJONG<span>.</span></a>
+    <div class="links">
+      <a href="#try">직접 체험</a><a href="#task">과업</a><a href="#structure">구성</a><a href="#process">절차</a><a href="#examples">예시</a><a href="#compare">전·후</a><a href="#trust">신뢰성</a><a href="#ok">해도 되나</a><a href="#skillmd">SKILL.md</a>
+    </div>
+    <button id="theme" type="button" aria-label="밝은 화면과 어두운 화면 전환">◐</button>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="wrap">
+    <div>
+      <div class="tag"><i></i>ITM.690 인공지능 경영과 법 · 과제 (i) 스킬</div>
+      <h1>로봇 <em>규제·인증</em><br>사전검토</h1>
+      <p class="lead">로봇 사양을 넣으면 한국에서 출시·설치·운영할 때 걸리는 규제와 인증을 <b>여러 법령에 걸쳐 판정</b>하고, 제조사가 할 일과 고객사에 안내할 일을 나눠 <b>근거 링크와 함께</b> 보고서로 정리하는 스킬입니다.</p>
+      <div class="cta"><a class="b1" href="#try">직접 체험하기</a><a class="b2" href="#examples">실행 예시 보기</a></div>
+    </div>
+    <div class="idcard">
+      <span class="lbl">CLAUDE SKILL</span>
+      <span class="name">robot-regulation-precheck</span>
+      <dl><dt>버전</dt><dd>v3</dd><dt>판단기준 기준일</dt><dd>2026-10-26</dd><dt>근거 링크</dt><dd>국가법령정보센터 23개</dd></dl>
+      <div class="big-t"><s>약 1시간</s><b>→ 3분</b><span>사례 1건 기준<br>(전: 경험상 추정 · 후: 실측)</span></div>
+      <div class="chips"><span>실외 이동</span><span>실내 이동</span><span>협동</span><span>산업용</span><span>모바일 매니퓰레이터</span></div>
+    </div>
+  </div>
+</header>
+
+<section class="wrap" id="try">
+  <div class="sec-head"><span class="eb">TRY IT</span><h2>내 로봇 사양을 넣어 직접 판정해 보세요</h2><p class="ss">스킬의 판단기준 파일(judgment-criteria.md, 기준일 2026-10-26)을 그대로 규칙으로 옮긴 체험판입니다. 사양을 바꾸면 판정이 바로 바뀝니다. 예시는 스킬 시험에 쓴 정답표 사례 다섯 가지입니다.</p></div>
+  <div class="try">
+    <form class="card form" id="specForm" onsubmit="return false" aria-label="로봇 사양">
+      <div class="fld"><span>예시로 채우기</span><div class="presets" id="presets"></div></div>
+      <label class="fld"><span>어디를 다니나요</span>
+        <select id="f-move"><option value="none">이동하지 않음 (고정 설치)</option><option value="indoor">건물·시설 실내</option><option value="outdoor">실외 보도·횡단보도</option><option value="road">실외 보도 + 차도 겸용</option></select></label>
+      <div class="row2" id="massRow">
+        <label class="fld"><span>질량 (kg)</span><input id="f-mass" type="number" min="0" step="1" value="80"></label>
+        <label class="fld"><span>최고속도 (km/h)</span><input id="f-speed" type="number" min="0" step="0.1" value="6"></label>
+      </div>
+      <label class="fld"><span>로봇 팔 (매니퓰레이터)</span>
+        <select id="f-arm"><option value="none">없음</option><option value="lt3">있음 · 3축 미만</option><option value="ge3">있음 · 3축 이상</option></select></label>
+      <div class="checks" id="armChecks">
+        <label><input type="checkbox" id="f-collab"> 사람과 같은 공간에서 펜스 없이 쓰고 싶다 (협동운전)</label>
+        <label><input type="checkbox" id="f-ee"> 날카롭거나 무거운 그리퍼·공작물을 다룬다</label>
+      </div>
+      <label class="fld"><span>주로 쓰는 곳</span>
+        <select id="f-place"><option value="work">사업장 (공장·물류센터 등 근로자 작업 공간)</option><option value="public">누구나 드나드는 곳 (상점·병원·공원·보도)</option><option value="restricted">출입이 통제되는 건물 (사무실·관리 구역)</option><option value="home">가정</option></select></label>
+      <div class="checks">
+        <label id="elevL"><input type="checkbox" id="f-elev"> 엘리베이터를 타고 층간 이동한다</label>
+        <label><input type="checkbox" id="f-cam"> 카메라가 있다</label>
+        <label id="learnL"><input type="checkbox" id="f-learn"> 촬영 영상을 AI 학습에 쓴다</label>
+        <label><input type="checkbox" id="f-wireless"> 무선통신이 있다 (Wi-Fi·LTE·블루투스 등)</label>
+        <label><input type="checkbox" id="f-batt"> 리튬이온 배터리가 있다</label>
+      </div>
+      <label class="fld"><span>AI 기능</span>
+        <select id="f-ai"><option value="none">없음</option><option value="perception">인식·판단 (비전, 자율주행, 이상 감지)</option><option value="genai">대화형 생성형 AI</option><option value="medical">의료·재활 목적</option></select></label>
+      <p class="privacy">입력한 사양은 이 브라우저 안에서만 계산되고 어디로도 전송되지 않습니다. 그래도 실제 회사 제품의 미공개 사양은 넣지 마세요.</p>
+    </form>
+    <div class="card out" id="out" aria-live="polite"></div>
+  </div>
+</section>
+
+<section class="wrap" id="task">
+  <div class="sec-head"><span class="eb">TASK &amp; FORM</span><h2>법령 하나는 단순한데,<br>로봇 하나에는 법령 여러 개가 겹칩니다</h2></div>
+  <div class="stack">
+    <p class="body">실외 배송로봇 하나를 내놓으려면 운행안전인증만 보면 끝나지 않습니다. 카메라가 있으면 개인정보보호법, 무선이 있으면 전파법, AI 기능이 있으면 인공지능 기본법이 함께 걸립니다. 팔을 얹은 모바일 매니퓰레이터는 이동로봇 기준과 산업용 로봇 기준을 동시에 받습니다. <b>각 법령은 짧지만, 어떤 사양이 어떤 의무를 만드는지 가로질러 판단하는 일은 사람 머릿속에만 있었습니다.</b></p>
+    <div class="laws" aria-label="교차하는 법령">
+      <span>지능형로봇법 · 운행안전인증 고시</span><span>도로교통법</span><span>산업안전보건법</span><span>안전보건규칙 제222~224조</span><span>자율안전확인 고시</span><span>개인정보보호법 제25조의2</span><span>인공지능 기본법</span><span>전파법</span><span>전기용품안전관리법</span><span>제조물 책임법</span>
+    </div>
+    <div class="grid2">
+      <div class="card on">
+        <span class="label">THIS TASK · 스킬</span>
+        <h3>규제 사전검토</h3>
+        <p>문서량은 적고 판단이 복잡합니다. 전부 컨텍스트에 실을 수 있어 검색(RAG)이 필요 없고, 필요한 것은 판단 순서와 기준을 매번 똑같이 적용하는 일입니다. 그래서 절차와 기준을 문서로 고정하는 스킬로 만들었습니다.</p>
+      </div>
+      <div class="card">
+        <span class="label">TASK (ii) · 웹앱</span>
+        <h3>특허 아이디어 탐색</h3>
+        <p>판단은 단순하지만 특허가 6,860건입니다. 한 번에 읽힐 수 없어 검색(키워드 + 의미)이 꼭 필요하고, 동료가 링크로 써야 하므로 웹앱으로 만들었습니다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="wrap" id="structure">
+  <div class="sec-head"><span class="eb">STRUCTURE</span><h2>파일 세 개, 판단 축 세 개</h2><p class="ss">스킬은 지시문 하나가 아니라, 절차·판단기준·출력 양식을 나눈 파일 묶음입니다.</p></div>
+  <div class="stack">
+    <div class="grid3">
+      <div class="card"><span class="label">01 · 발동 조건 · 절차 · 지킬 것</span><h3 class="mono" style="font-size:17px">SKILL.md</h3><p>언제 쓰는지(description), 6단계 절차, 지어내지 말 것과 근거 수준 표시 규칙.</p></div>
+      <div class="card"><span class="label">02 · 판단기준 · 링크 표</span><h3 class="mono" style="font-size:17px">judgment-criteria.md</h3><p>유형 분류, 유형별 기준 5개, 공통 레이어 6개, 교차 판단 체크리스트, 근거 링크 23개.</p></div>
+      <div class="card"><span class="label">03 · 출력 양식</span><h3 class="mono" style="font-size:17px">report-template.md</h3><p>요약, 항목별 판정, 주체별 할 일, 교차 판단, 확인 필요 목록, 참고 법령 원문, 범위 밖.</p></div>
+    </div>
+    <div class="axes">
+      <div class="axis"><b>로봇 유형</b><span>실외 이동 · 실내 이동 · 협동 · 산업용 · 모바일 매니퓰레이터. 둘 이상이면 모두 적용</span></div>
+      <div class="axis"><b>생애주기</b><span>① 제조·출시 ② 현장 설치 ③ 운영·유지보수</span></div>
+      <div class="axis"><b>의무 주체</b><span>제조·수입사 · 사용 사업주 · 운영자</span></div>
+    </div>
+    <div class="legend">
+      <span><span class="stamp s-req">필수</span>사양이 요건에 해당하면 의무 발생</span>
+      <span><span class="stamp s-rev">검토 필요</span>사양·해석에 따라 갈림</span>
+      <span><span class="stamp s-na">해당 없음</span>이유를 반드시 기록</span>
+      <span><span class="tag-hint">💡추론·제안</span>판단기준에 직접 근거가 없는 해석</span>
+    </div>
+  </div>
+</section>
+
+<section class="wrap" id="process">
+  <div class="sec-head"><span class="eb">PROCESS</span><h2>스킬이 매번 따르는 순서</h2></div>
+  <div class="steps">
+    <div class="step"><span class="no">01</span><div><h4>사양 확인</h4><p>판정을 바꾸는 항목만 묻고, 나머지는 "가정"으로 표시합니다. 질량·속도처럼 기준선이 있는 항목은 기준선을 선택지로 묻습니다.</p></div></div>
+    <div class="step"><span class="no">02</span><div><h4>판단기준 읽기</h4><p>판정은 judgment-criteria.md만 근거로 합니다.</p></div></div>
+    <div class="step"><span class="no">03</span><div><h4>유형 판정</h4><p>해당하는 유형을 모두 고릅니다.</p></div></div>
+    <div class="step"><span class="no">04</span><div><h4>항목별 판정</h4><p>판정 기호, 이유, 근거 링크, 의무 주체, 생애주기. 해당 없음도 이유를 남깁니다.</p></div></div>
+    <div class="step"><span class="no">05</span><div><h4>교차 판단</h4><p>법령이 겹치거나 비는 지점, 로봇 단품이 아닌 작업 단위로 봐야 하는 지점을 따로 씁니다.</p></div></div>
+    <div class="step"><span class="no">06</span><div><h4>보고서 작성</h4><p>양식대로 쓰고, 확인 필요 항목은 결론에서 빼서 목록으로 모읍니다.</p></div></div>
+  </div>
+</section>
+
+<section class="wrap" id="examples">
+  <div class="sec-head"><span class="eb">EXAMPLES</span><h2>두 가지 로봇을 넣어 봤습니다</h2><p class="ss">사례의 로봇 사양은 모두 시험용 가상 사양입니다.</p></div>
+  <div class="stack" style="gap:40px">
+
+  <div class="card ex">
+    <div class="ex-h"><span class="label">EXAMPLE 01 · 실외 이동로봇</span><h3>한 줄 질문으로 시작</h3></div>
+    <div class="spec"><span class="cmd">/robot-regulation-precheck</span>
+모바일로봇을 실외에서 주행시키고 싶어. 어떤 인증을 준비해야할까</div>
+    <p class="body" style="font-size:15px">사양이 부족하면 스킬이 판정을 가르는 항목만 되묻습니다. 질량과 속도는 운행안전인증의 기준선(500kg, 15km/h)을 그대로 선택지로 제시했습니다.</p>
+    <dl class="qa">
+      <dt>어디를 주행하나요?</dt><dd>보도·횡단보도</dd>
+      <dt>질량과 최고속도는?</dt><dd>500kg·15km/h 이하</dd>
+      <dt>탑재 기능은?</dt><dd>카메라, 무선통신</dd>
+      <dt>누구에게 판매·운영하나요?</dt><dd>공공 서비스</dd>
+    </dl>
+    <div class="tally"><span class="label">한눈에 보기</span><span class="stamp s-req">필수 6</span><span class="stamp s-rev">검토 필요 6</span><span class="stamp s-na">해당 없음 4</span></div>
+    <div class="tbl"><table>
+      <thead><tr><th>판정</th><th>항목</th><th>판정 이유</th><th>근거</th><th>주체 · 단계</th></tr></thead>
+      <tbody>
+        <tr><td><span class="stamp s-req">필수</span></td><td>실외이동로봇 운행안전인증</td><td>보도 운행 + 500kg·15km/h 이하. 16개 시험 항목, 서류심사 후 제품심사</td><td><a href="https://www.law.go.kr/행정규칙/실외이동로봇운행안전인증절차및기준등에관한고시">운행안전인증 고시</a></td><td>제조·수입사 · ①</td></tr>
+        <tr><td><span class="stamp s-req">필수</span></td><td>보험·공제 가입</td><td>인증 로봇을 보도에서 운영하는 자의 의무</td><td><a href="https://www.law.go.kr/법령/지능형로봇개발및보급촉진법">지능형로봇법</a></td><td>운영자 · ③</td></tr>
+        <tr><td><span class="stamp s-req">필수</span></td><td>도로교통법 준수</td><td>인증 로봇은 보행자 지위. 위반 시 운용자에게 범칙금</td><td><a href="https://www.law.go.kr/법령/도로교통법">도로교통법</a></td><td>운영자 · ③</td></tr>
+        <tr><td><span class="stamp s-req">필수</span></td><td>촬영 사실 표시</td><td>공개된 장소(보도)에서 카메라로 사람을 촬영</td><td><a href="https://www.law.go.kr/법령/개인정보보호법/제25조의2">개인정보보호법 제25조의2</a></td><td>운영자 · ③</td></tr>
+        <tr><td><span class="stamp s-rev">검토 필요</span></td><td>고영향 AI 해당 여부</td><td>검토 자체는 의무. 보행자 지위인 로봇이 교통 영역에 드는지는 불명확</td><td><a href="https://www.law.go.kr/법령/인공지능발전과신뢰기반조성등에관한기본법/제33조">인공지능 기본법 제33조</a></td><td>제조사·운영자 · ①③</td></tr>
+      </tbody>
+    </table></div>
+    <p class="note">보고서 16개 항목 중 5개 발췌. 첫 버전(v1)으로 실행한 결과이며, 근거 링크는 v3 판단기준의 링크로 표시했습니다.</p>
+    <p class="quote">운행안전인증은 제조사가 받지만, 보험·범칙금·촬영 표시·정기점검은 운영자 의무입니다. 인증과 운영 의무의 주체가 다릅니다.</p>
+    <p class="quote hint"><span class="tag-hint">💡추론</span>공공 서비스 모델이면 운영 주체가 제조사인지 발주처(지자체 등)인지를 계약에서 먼저 정해야 하고, 이 경계가 AS·점검 책임 분담과 비용 산정으로 이어집니다.</p>
+  </div>
+
+  <div class="card ex">
+    <div class="ex-h"><span class="label">EXAMPLE 02 · 협동로봇 (시험 사례 T3)</span><h3>펜스 없이 쓰고 싶은 협동로봇</h3></div>
+    <div class="spec"><span class="cmd">/robot-regulation-precheck</span>
+이 로봇의 규제·인증을 검토해줘.
+6축 협동로봇, 가반 10kg, 자동차 부품 공장 조립 라인, 작업자와 같은 공간에서 펜스 없이 운영 희망, 엔드이펙터는 금속 판재를 집는 날카로운 모서리의 기계식 그리퍼, 카메라 없음, 유선 이더넷만, AI 기능 없음, 완성차 부품사에 SI 업체를 통해 판매</div>
+    <div class="tally"><span class="label">한눈에 보기</span><span class="stamp s-req">필수 5</span><span class="stamp s-rev">검토 필요 6</span><span class="stamp s-na">해당 없음 6</span></div>
+    <div class="tbl"><table>
+      <thead><tr><th>판정</th><th>항목</th><th>판정 이유</th><th>근거</th><th>주체 · 단계</th></tr></thead>
+      <tbody>
+        <tr><td><span class="stamp s-req">필수</span></td><td>자율안전확인신고(KCs)</td><td>3축 이상(6축) 매니퓰레이터를 가진 산업용 로봇</td><td><a href="https://www.law.go.kr/행정규칙/위험기계기구자율안전확인고시">자율안전확인 고시</a></td><td>제조·수입사 · ①</td></tr>
+        <tr><td><span class="stamp s-req">필수</span></td><td>안전검사(최초·정기)</td><td>사업장에서 쓰는 산업용 로봇. 주기는 확인 필요</td><td><a href="https://www.law.go.kr/법령/산업안전보건법/제93조">산업안전보건법 제93조</a></td><td>사용 사업주 · ②③</td></tr>
+        <tr><td><span class="stamp s-req">필수</span></td><td>위험성평가(작업 단위)</td><td>협동로봇 도입이 곧 방호장치 생략은 아님. 그리퍼·판재 포함</td><td><a href="https://www.law.go.kr/법령/산업안전보건법">산업안전보건법</a></td><td>사업주·SI · ②</td></tr>
+        <tr><td><span class="stamp s-rev">검토 필요</span></td><td>방책·안전매트 생략</td><td>KS·국제 기준 부합이 인정돼야 생략 가능. 날카로운 그리퍼라 부합 여부 불확실</td><td><a href="https://www.law.go.kr/법령/산업안전보건기준에관한규칙/제223조">안전보건규칙 제223조</a></td><td>제조사 + 사업주·SI · ①②</td></tr>
+        <tr><td><span class="stamp s-na">해당 없음</span></td><td>무선 적합성평가</td><td>유선 이더넷만 사용. 무선 펜던트를 넣으면 필수로 바뀜</td><td><a href="https://www.law.go.kr/법령/전파법/제58조의2">전파법 제58조의2</a></td><td>—</td></tr>
+      </tbody>
+    </table></div>
+    <p class="note">보고서 17개 항목 중 5개 발췌. 근거 링크는 국가법령정보센터 현행 법령으로 연결됩니다.</p>
+    <p class="quote">본체가 협동로봇 인증을 받았어도 날카로운 그리퍼를 달면 협동운전 조건이 깨질 수 있습니다. "펜스 없이"는 본체 사양이 아니라 작업 단위 위험성평가 결과에 달린 조건부 결과입니다.</p>
+    <p class="quote hint"><span class="tag-hint">💡제안</span>영업 단계에서 "펜스리스 보장"이 아니라 "위험성평가 결과에 따른 조건부 펜스리스"로 설명하고, SI에는 허용 엔드이펙터 조건과 위험성평가 템플릿을 주면 계약 리스크가 줄어듭니다.</p>
+  </div>
+  </div>
+</section>
+
+<section class="wrap" id="compare">
+  <div class="sec-head"><span class="eb">BEFORE · AFTER</span><h2>스킬이 바꾼 것</h2></div>
+  <div class="stack">
+    <div class="ba">
+      <div class="side"><span>스킬 없이 직접 · 경험상 추정</span><b>약 1시간</b></div>
+      <div class="arrow" aria-hidden="true">→</div>
+      <div class="side after"><span>스킬 사용 · 실측</span><b>3분 이내</b></div>
+    </div>
+    <div class="tbl"><table>
+      <thead><tr><th>비교 항목</th><th>스킬 없이 직접</th><th>스킬 사용</th></tr></thead>
+      <tbody>
+        <tr><td>소요 시간 (사례 1건)</td><td class="num">약 1시간 <span class="muted" style="font-weight:400">(경험상 추정)</span></td><td class="num">3분 이내 <span class="muted" style="font-weight:400">(실측)</span></td></tr>
+        <tr><td>검토 범위</td><td>평소 아는 법령 위주. 공통 레이어(전파, 전기, 개인정보, AI)를 놓치기 쉬움</td><td>유형별 기준 5개와 공통 레이어 6개를 매번 전부 대 봄</td></tr>
+        <tr><td>해당 없음 처리</td><td>기록하지 않음</td><td>이유를 남겨 사람이 다시 검토할 수 있음</td></tr>
+        <tr><td>결과물 형태</td><td>메모, 법령 목록</td><td>주체별 할 일 체크리스트, 확인 필요 목록, 근거 링크가 달린 보고서</td></tr>
+        <tr><td>근거 수준</td><td>사실과 개인 해석이 섞임</td><td>판단기준 근거와 💡추론·제안이 분리됨</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<section class="wrap" id="trust">
+  <div class="sec-head"><span class="eb">RELIABILITY</span><h2>정답표를 먼저 정하고 채점했습니다</h2><p class="ss">실행 전에 가상 사양 5개와 기대 판정을 확정하고, 각 사례에 일부러 함정을 넣었습니다. 스킬은 설치 후 새 대화에서 실행해 채점했습니다.</p></div>
+  <div class="stack">
+    <div class="counts">
+      <div class="count"><b>40 / 40</b><span>핵심 판정 일치 (실행 4회)</span></div>
+      <div class="count"><b>4 / 4</b><span>함정 회피</span></div>
+      <div class="count"><b>0</b><span>지어낸 조문·링크</span></div>
+    </div>
+    <div class="tbl"><table>
+      <thead><tr><th>사례</th><th>함정</th><th>결과</th></tr></thead>
+      <tbody>
+        <tr><td>실외 보도 주행 로봇 (자유 질문)</td><td>AI 이상감지를 고영향 AI로 단정하는가</td><td>단정하지 않고 검토 의무와 불명확성을 분리. 9/9</td></tr>
+        <tr><td>T3 펜스리스 협동로봇</td><td>"협동로봇이니 펜스 불필요"라고 결론 내는가</td><td>작업 단위 판정으로 조건부 처리. 10/10</td></tr>
+        <tr><td>T4 물류 모바일 매니퓰레이터</td><td>한 유형만 적용하는가 · 출입통제 물류센터 촬영에 과잉 적용하는가</td><td>네 기준 결합, 촬영은 검토 필요로. 11/11</td></tr>
+        <tr><td>T3 재시험 (v3)</td><td>v1 문제가 고쳐졌는가</td><td>💡 분리, 단정 제거, 근거 링크 확인. 10/10</td></tr>
+      </tbody>
+    </table></div>
+    <h3 style="font-size:20px;margin-top:18px">틀린 답보다 근거 수준이 섞이는 것이 문제였습니다</h3>
+    <div class="loop">
+      <div class="v"><span class="ver">v1 · 시험</span><p>판정은 모두 맞았지만, 판단기준에 없는 해석이 판정과 같은 톤으로 섞였습니다. "그리퍼는 로봇 KCs에 포함되지 않는다"처럼 근거 없는 단정도 1건 나왔습니다. 7강에서 본 misgrounded 인용과 같은 구조입니다.</p></div>
+      <div class="v"><span class="ver">v2 · 수정</span><p>근거 없는 해석은 💡추론·💡제안으로 표시하는 규칙을 추가했습니다. 시험이 판단기준 자체의 모호함(AI 기본법을 🟡 하나로 적어 실행마다 표기가 갈림)과 공백(팔 단품 KCs 보유 시 결합체 재신고 여부)도 드러내서 기준을 고쳤습니다.</p></div>
+      <div class="v"><span class="ver">v3 · 수정 · 재시험</span><p>받는 사람이 원문을 확인할 수 있게 근거 링크 표를 넣고, 표에 없는 주소는 만들지 않도록 했습니다. 링크는 모두 접속해 확인했고, 존재하지 않는 법령명은 사이트가 오류를 돌려준다는 점도 함께 확인했습니다. 재시험에서 v1 문제가 모두 해소됐습니다.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="wrap" id="ok">
+  <div class="sec-head"><span class="eb">IS IT OK?</span><h2>해도 되는가: 애매했던 점과 판단</h2></div>
+  <div class="tbl"><table>
+    <thead><tr><th>애매한 점</th><th>판단과 극복</th><th>남은 위험</th></tr></thead>
+    <tbody>
+      <tr><td><b>법률 자문처럼 보인다</b></td><td>사전 점검 자료로 범위를 한정하고 고지 문구를 고정. 모든 판정에 근거 법령 링크, 확인 필요 항목은 결론에서 제외</td><td>읽는 사람이 판정을 확정 결론으로 받아들일 수 있음</td></tr>
+      <tr><td><b>회사 제품 사양을 외부 AI에 넣어도 되나</b></td><td>시험과 발표는 모두 가상 사양. 출시 전 실제 사양은 영업비밀이라 회사가 승인한 도구에서만 사용</td><td>실무 도입에는 사내 승인 절차가 필요</td></tr>
+      <tr><td><b>법령이 바뀌면 틀린다</b></td><td>판단기준에 기준일을 적고 보고서에 표시. 링크는 현행 법령으로 연결되므로 개정 확인을 권고</td><td>기준을 갱신하는 담당과 주기가 정해지지 않음</td></tr>
+      <tr><td><b>ISO 등 유료 표준을 넣어도 되나</b></td><td>저작물이라 원문은 넣지 않고 번호만 참조. 내용은 판정하지 않음</td><td>협동운전 판단의 핵심이 유료 표준 안에 있음</td></tr>
+      <tr><td><b>AI가 링크나 조문을 지어낼 수 있다</b></td><td>판단기준 표에 있는 링크만 쓰게 하고, 링크가 없으면 확인처만 적게 함</td><td>표에 오기가 있으면 그대로 전파됨</td></tr>
+      <tr><td><b>누락하면 누가 책임지나</b></td><td>해당 없음도 이유를 남겨 사람이 검토. 최종 판단은 인증기관·법무</td><td>판단기준에 없는 제도는 스킬이 찾지 못함</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<div class="wrap">
+  <div class="band">
+    <span class="eb">NEXT</span>
+    <h2>실제 업무에 쓰려면 더 필요한 것</h2>
+    <ul>
+      <li>판단기준의 [확인 필요] 항목(안전검사 주기, 협동로봇 작업장 인증 현행 운영, 결합체 신고 단위 등)을 인증기관·감독기관 답변으로 확정</li>
+      <li>판단기준 개정 담당과 갱신 주기, 변경 이력 관리</li>
+      <li>법무·인증 담당의 기준 검수, 회사가 승인한 AI 환경에서 운영</li>
+      <li>해외 인증(CE, UL), 의료기기, 중대재해처벌법 등 현재 범위 밖 영역 확장</li>
+    </ul>
+  </div>
+</div>
+
+<section class="wrap" id="skillmd">
+  <div class="sec-head"><span class="eb">APPENDIX</span><h2>SKILL.md 원문</h2></div>
+  <details><summary>SKILL.md 펼쳐 보기</summary><pre>---
+name: robot-regulation-precheck
+description: 로봇 제품 사양을 받아 한국에서 출시·설치·운영할 때 걸리는 규제와 인증(실외이동로봇 운행안전인증, 협동로봇·산업용 로봇 안전기준, 개인정보, 전파, AI 기본법 등)을 사전 검토하는 보고서를 만든다. &quot;이 로봇 출시하려면 어떤 인증이 필요해&quot;, &quot;규제 검토해줘&quot;, &quot;안전인증 체크&quot; 같은 요청에 사용한다. 대상은 실외·실내 이동로봇, 협동로봇, 산업용 로봇, 모바일 매니퓰레이터.
+---
+
+# 로봇 규제·인증 사전검토
+
+로봇 사양을 받아, 여러 법령을 가로질러 적용되는 규제·인증을 판정하고 의무 주체와 생애주기별로 정리한 사전검토 보고서를 만든다.
+
+## 절차
+
+1. **사양 확인**
+   아래 항목을 확인한다. 빠진 항목이 판정을 바꾸면 사용자에게 한 번에 묶어서 묻는다. 판정에 영향이 없으면 묻지 않고 &quot;가정&quot;으로 적는다.
+   - 형태(이동 방식, 매니퓰레이터 축 수), 질량, 최고속도
+   - 운행·설치 장소(보도 / 실내 공공시설 / 사업장 / 가정), 사람과의 공간 공유 여부
+   - 카메라, 무선통신, 배터리
+   - AI 기능(자율주행 판단, 대화형 생성형 AI, 의료·재활 목적 등)
+   - 판매 대상(B2B 사업장, 공공 서비스, 소비자)
+
+2. **판단기준 읽기**
+   `judgment-criteria.md`를 끝까지 읽는다. 판정은 이 문서의 기준만 근거로 한다.
+
+3. **유형 판정**
+   judgment-criteria.md 2절로 유형을 정한다. 둘 이상에 해당하면 모두 적용한다.
+
+4. **항목별 판정**
+   해당 유형 기준(3절)과 공통 레이어(4절)를 차례로 대 보고, 항목마다
+   - 🔴 필수 / 🟡 검토 필요 / ⚪ 해당 없음
+   - 판정 이유(사양의 어떤 값 때문인지)
+   - 근거 법령·고시와 링크 (judgment-criteria.md 6절의 링크만 사용. 조문 링크가 있으면 조문으로, 없으면 법령 링크로)
+   - 의무 주체(제조·수입사 / 사용 사업주 / 운영자)와 생애주기(① 제조·출시 ② 설치 ③ 운영)
+   를 적는다. ⚪도 이유를 남긴다.
+
+5. **교차 판단**
+   judgment-criteria.md 5절 체크리스트를 모두 확인하고, 법령이 겹치거나 비는 지점을 별도 섹션으로 쓴다.
+
+6. **보고서 작성**
+   `report-template.md`의 형식대로 작성한다.
+
+## 지켜야 할 것
+
+- judgment-criteria.md에 없는 조문 번호, 수치, 기관명, 절차를 지어내지 않는다. 판단기준에 없는 쟁점이 보이면 &quot;판단기준 범위 밖&quot;으로 표시하고 확인 경로만 제안한다.
+- [확인 필요] 표시가 붙은 내용은 결론처럼 쓰지 않고, 보고서의 &quot;확인 필요 목록&quot;으로 모은다.
+- 근거 수준을 섞지 않는다. 판단기준에 적힌 내용은 그대로 판정하고, 판단기준에 직접 근거가 없는 해석·사업적 시사점·설계 대책 제안은 문장 앞에 **💡추론** 또는 **💡제안**을 붙여 구분한다. 판단기준에 없는 사실(어느 인증에 무엇이 포함되는지 등)은 단정하지 말고 [확인 필요]로 돌린다.
+- ISO 등 유료 표준은 번호만 언급하고 내용을 단정하지 않는다.
+- 링크는 judgment-criteria.md 6절에 있는 주소만 쓴다. 주소를 추측하거나 조합해 새로 만들지 않는다. 6절에 링크가 &quot;없음&quot;인 자료는 이름과 확인처만 적는다.
+- 판단기준의 기준일을 보고서에 적고, 이후 개정 여부 확인을 권고한다.
+- 이 보고서는 사전 점검용이며 법률 자문이나 인증기관의 판단을 대신하지 않는다는 문구를 보고서 끝에 한 번 넣는다.
+</pre></details>
+</section>
+
+<footer class="wrap">
+  <span>진우종 · KAIST 기술경영전문대학원 · ITM.690 인공지능 경영과 법 (2026 가을)</span>
+  <span>사례의 로봇 사양은 모두 시험용 가상 사양입니다. 이 페이지와 스킬의 보고서는 사전 점검 자료이며 법률 자문을 대신하지 않습니다.</span>
+</footer>
+
+<script>
+/* 로봇 규제·인증 사전검토 · 체험판 판정 엔진
+   judgment-criteria.md (기준일 2026-10-26, v3)의 2~5절을 규칙으로 옮긴 것.
+   근거 링크는 같은 문서 6절의 표에 있는 주소만 쓴다. 입력은 브라우저 밖으로 보내지 않는다. */
+(function (root) {
+  const LAW = {
+    robot: ["지능형로봇법", "https://www.law.go.kr/법령/지능형로봇개발및보급촉진법"],
+    cert: ["운행안전인증 고시", "https://www.law.go.kr/행정규칙/실외이동로봇운행안전인증절차및기준등에관한고시"],
+    road: ["도로교통법", "https://www.law.go.kr/법령/도로교통법"],
+    osh: ["산업안전보건법", "https://www.law.go.kr/법령/산업안전보건법"],
+    osh93: ["산업안전보건법 제93조", "https://www.law.go.kr/법령/산업안전보건법/제93조"],
+    oshRule: ["산업안전보건법 시행규칙 (별표 5)", "https://www.law.go.kr/법령/산업안전보건법시행규칙"],
+    std: ["안전보건규칙", "https://www.law.go.kr/법령/산업안전보건기준에관한규칙"],
+    std222: ["제222조", "https://www.law.go.kr/법령/산업안전보건기준에관한규칙/제222조"],
+    std223: ["안전보건규칙 제223조", "https://www.law.go.kr/법령/산업안전보건기준에관한규칙/제223조"],
+    std224: ["제224조", "https://www.law.go.kr/법령/산업안전보건기준에관한규칙/제224조"],
+    kcs: ["자율안전확인 고시", "https://www.law.go.kr/행정규칙/위험기계기구자율안전확인고시"],
+    elev: ["승강기 안전관리법", "https://www.law.go.kr/법령/승강기안전관리법"],
+    pipa: ["개인정보보호법 제25조의2", "https://www.law.go.kr/법령/개인정보보호법/제25조의2"],
+    ai33: ["인공지능 기본법 제33조", "https://www.law.go.kr/법령/인공지능발전과신뢰기반조성등에관한기본법/제33조"],
+    ai34: ["제34조", "https://www.law.go.kr/법령/인공지능발전과신뢰기반조성등에관한기본법/제34조"],
+    aiLaw: ["인공지능 기본법", "https://www.law.go.kr/법령/인공지능발전과신뢰기반조성등에관한기본법"],
+    radio: ["전파법 제58조의2", "https://www.law.go.kr/법령/전파법/제58조의2"],
+    radioLaw: ["전파법", "https://www.law.go.kr/법령/전파법"],
+    elec: ["전기용품안전관리법", "https://www.law.go.kr/법령/전기용품및생활용품안전관리법"],
+    pl: ["제조물 책임법", "https://www.law.go.kr/법령/제조물책임법"],
+    kiria: ["한국로봇산업진흥원", "https://www.kiria.org"],
+  };
+  const NOTE = {
+    ks7317: "KS B 7317 (링크 없음, e-나라표준인증에서 검색)",
+    pipaGuide: "개인정보위 이동형 영상정보처리기기 안내서 (링크 없음, 개인정보보호위원회 자료실)",
+    aiGuide: "과기정통부 고영향 AI 판단 가이드라인 (링크 없음)",
+    iso: "KS B ISO 10218·TS 15066 (유료 표준, 번호만 참조)",
+  };
+
+  function evaluate(s) {
+    const items = [], cross = [], checks = [], oos = [];
+    const add = (v, t, why, refs, who, stage, check) => {
+      items.push({ v, t, why, refs: refs || [], who: who || "", stage: stage || "", check: check || "" });
+      if (check) checks.push(t + ": " + check);
+    };
+    const moving = s.move !== "none";
+    const outdoor = s.move === "outdoor" || s.move === "road";
+    const indoor = s.move === "indoor";
+    const arm3 = s.arm === "ge3";
+    const collab = arm3 && s.collab;
+    const work = s.place === "work";
+    const publicPlace = outdoor || s.place === "public";
+    const mm = moving && arm3;
+
+    // ---- 2절 유형 분류
+    const types = [];
+    if (outdoor) types.push("실외 이동로봇");
+    if (indoor) types.push("실내 이동로봇");
+    if (collab) types.push("협동로봇");
+    if (arm3) types.push("산업용 로봇");
+    if (mm) types.push("모바일 매니퓰레이터");
+    if (!types.length) types.push(s.arm === "lt3" ? "판단기준의 유형에 해당 없음 (3축 미만 팔, 이동 없음)" : "판단기준의 유형에 해당 없음");
+
+    // ---- 3.1 실외 이동로봇
+    if (outdoor) {
+      const inScope = (+s.mass || 0) <= 500 && (+s.speed || 0) <= 15;
+      if (inScope) {
+        add("req", "실외이동로봇 운행안전인증", `보도 운행 + ${s.mass}kg·${s.speed}km/h (500kg·15km/h 이하). 16개 시험 항목, 서류심사 후 제품심사`, [LAW.cert, LAW.robot], "제조·수입사", "①");
+        add("req", "사후관리 (2년 정기점검)", "인증 받은 로봇은 매 2년 정기점검, 필요 시 수시점검", [LAW.cert], "제조·수입사·운영자", "③");
+        add("req", "보험·공제 가입", "인증 로봇을 보도에서 운영하는 자의 의무", [LAW.robot], "운영자", "③");
+        add("req", "도로교통법 준수", "인증 로봇은 보행자 지위. 신호위반·무단횡단 금지, 위반 시 운용자에게 범칙금", [LAW.road], "운영자", "③");
+        cross.push("인증은 제조·수입사가 받지만, 보험·범칙금·촬영 표시·정기점검은 운영자 의무입니다. 공공 사업이면 운영 주체를 계약에서 먼저 정해야 합니다.");
+      } else {
+        add("rev", "운행안전인증 대상 밖", `${s.mass}kg·${s.speed}km/h로 500kg 또는 15km/h를 넘음 → 운행안전인증 대상이 아니고 보도 통행 근거가 없어짐`, [LAW.cert], "제조·수입사", "①", "규제샌드박스 실증특례 여부");
+      }
+      if (s.move === "road") oos.push("차도 운행 요건 (자동차 관련 법령 등): 판단기준에 없는 영역이라 판정하지 않습니다.");
+      if (arm3) add("rev", "매니퓰레이터를 단 채 보도 운행", "운행안전인증의 규격·형상 요건과 충돌할 수 있음", [LAW.cert], "제조·수입사", "①", "실외 운행 시 팔 탑재 허용 여부");
+    }
+
+    // ---- 3.2 실내 이동로봇
+    if (indoor) {
+      add("na", "실외이동로봇 운행안전인증", "실내 전용이라 대상 아님 (실외 보도 운행 시에만 적용)", [LAW.robot], "—", "");
+      if (s.elev) add("rev", "승강기 탑승 (층간 이동)", "로봇 쪽은 엘리베이터 탑승 안전 평가, 승강기 쪽은 무선통신장치 등에 대한 안전검사 검사특례", [LAW.elev, NOTE.ks7317], "제조사(로봇·승강기)", "①②", "승강기 검사특례 현행 고시 조문");
+      if (work) {
+        add("rev", "사업장 내 운반", "근로자가 있는 사업장에서 운행 → 사업주의 위험성평가, 충돌·끼임 방지 조치 대상", [LAW.osh], "사용 사업주", "②③", "무인운반차 관련 개별 조문");
+        if (!arm3) {
+          add("rev", "특별교육", "사업장에서 로봇을 이용한 작업에 근로자를 배치하면 대상 여부 검토. 법제처는 특별교육 대상 로봇작업이 산업용 로봇에 한정되지 않는다고 해석", [LAW.oshRule, "법제처 법령해석례 (링크 없음, \"로봇작업\"으로 검색)"], "사용 사업주", "③");
+          cross.push("팔이 없는 서비스·물류 로봇이어도 사업장에서 쓰면 특별교육·위험성평가가 걸릴 수 있습니다.");
+        }
+      }
+    }
+    if (!moving) add("na", "실외이동로봇 운행안전인증", "이동하지 않는 고정 설치 로봇", [], "—", "");
+
+    // ---- 3.4 산업용 로봇 / 3.3 협동로봇
+    if (arm3) {
+      add("req", "자율안전확인신고 (KCs)", "3축 이상 매니퓰레이터를 가진 산업용 로봇. 제조·수입 시 신고하고 KCs 마크 표시 (연구·개발용, 수출용 등 면제 사유 있음)", [LAW.kcs, LAW.osh], "제조·수입사", "①");
+      const v = work ? "req" : "rev";
+      const cond = work ? "사업장에서 사용" : "사업장에서 근로자와 함께 쓰는 경우 적용";
+      add(v, "안전보건규칙 제222~224조", `${cond}. 교시 작업 시 조치, 운전 중 위험 방지(방책·감응형 방호장치 등), 수리·검사 시 조치`, [LAW.std, LAW.std222, LAW.std223, LAW.std224], "사용 사업주", "②③");
+      add(v, "안전검사 (최초·정기)", `${cond}. 지정 검사기관에서 울·방책·인터록 등 안전장치 점검`, [LAW.osh93], "사용 사업주", "②③", "최초·정기 검사 주기");
+      add(v, "특별교육", `${cond}. 로봇작업 근로자 특별교육`, [LAW.oshRule], "사용 사업주", "③");
+      add("rev", "방호장치 (안전매트 등)", "산업용 로봇 안전매트는 방호장치 자율안전확인 대상", [LAW.kcs], "방호장치 제조사", "①");
+      if (collab) {
+        add("req", "위험성평가 (작업 단위)", "협동운전이라도 엔드이펙터·공작물·주변 설비를 포함한 실제 작업으로 평가. 협동로봇 도입이 곧 방호장치 생략은 아님", [LAW.osh], "사용 사업주·SI", "②");
+        add("rev", "방책·안전매트 생략 (협동운전)", s.ee
+          ? "KS·국제 기준 부합이 인정돼야 생략 가능. 날카롭거나 무거운 엔드이펙터·공작물 때문에 협동운전 조건이 깨질 수 있음"
+          : "KS·국제 기준 부합이 인정돼야 생략 가능. 로봇 본체가 아니라 작업 단위로 판단", [LAW.std223, NOTE.iso], "제조사 + 사용 사업주·SI", "①②");
+        add("rev", "협동로봇 작업장 안전인증", "공정안전보고서, ISO 10218-1 적합성 평가서, 위험성평가 결과서 서면심사, 유효 3년", [LAW.kiria], "사용 사업주·SI", "②", "현재 운영 방식 (사업주 책임 설치로 전환 계획 보도)");
+        cross.push(s.ee
+          ? "\"펜스 없이\"는 본체 사양이 아니라 작업 단위 위험성평가 결과에 달린 조건부 결과입니다. 협동로봇 인증 본체라도 날카롭거나 무거운 엔드이펙터를 달면 협동운전 조건이 깨질 수 있습니다."
+          : "협동운전 판정은 로봇 단품이 아니라 로봇 + 엔드이펙터 + 작업 단위로 합니다.");
+        checks.push("엔드이펙터가 로봇 본체의 자율안전확인 범위에 포함되는지");
+      }
+    } else if (s.arm === "lt3") {
+      add("na", "산업용 로봇 기준 (KCs 등)", "매니퓰레이터가 3축 미만이라 판단기준의 산업용 로봇 대상 아님", [LAW.kcs], "—", "");
+    } else {
+      add("na", "산업용 로봇 기준 (KCs 등)", "매니퓰레이터 없음", [], "—", "");
+    }
+
+    // ---- 3.5 모바일 매니퓰레이터
+    if (mm) {
+      add("req", "결합 원칙", `이동 플랫폼(${outdoor ? "실외" : "실내"} 이동로봇) 기준과 매니퓰레이터(${collab ? "협동·" : ""}산업용 로봇) 기준을 모두 적용`, [], "제조사·사용 사업주", "①②③");
+      add("rev", "고정 설치 전제와의 충돌", "방책 범위, 안전검사 단위가 고정 설치를 전제로 짜여 있어 불명확 → 위험성평가로 보완하고 감독기관 확인", [LAW.osh], "사용 사업주", "②", "이동식 협동로봇 안전기준·KS 개정 현황");
+      add("rev", "결합체 신고 단위", "팔 단품이 이미 KCs를 받았을 때 이동 플랫폼과 결합한 제품으로 다시 신고해야 하는지", [LAW.kcs], "제조사", "①", "결합 제품 재신고 필요 여부");
+      add("rev", "이동체 위험의 공백", "산업용 로봇 기준은 팔 동작 위험 중심. 무거운 플랫폼이 작업자 옆을 주행하는 위험은 위험성평가로 따로 다룸", [LAW.osh], "사용 사업주", "②③");
+      cross.push("한 로봇이 이동로봇과 산업용 로봇 기준을 동시에 받습니다. 한 유형만 적용하면 누락이 생깁니다.");
+    }
+
+    // ---- 4절 공통 레이어
+    add("rev", "전기 안전", "안전인증·안전확인·공급자적합성확인 대상 품목인지 검토 (충전기·어댑터 포함)", [LAW.elec], "제조·수입사", "①", "로봇 본체의 품목 해당 여부");
+    if (s.wireless) add("req", "방송통신기자재 적합성평가", "무선통신 내장 (Wi-Fi, LTE, 블루투스 등)", [LAW.radio], "제조·수입사", "①");
+    else add("na", "방송통신기자재 적합성평가", "무선통신 없음. 무선 펜던트·모듈을 넣으면 필수로 바뀜", [LAW.radio], "—", "");
+    add("rev", "전자파적합성 (EMC)", "제품 구분에 따라 적합등록 대상 여부 검토", [LAW.radioLaw], "제조·수입사", "①");
+    if (s.batt) add("rev", "배터리", "리튬이온 전지 자체의 안전확인 대상 여부, 운송(항공·해상) 규정 검토", [LAW.elec], "제조·수입사", "①", "전지 안전확인 대상 범위");
+    else add("na", "배터리", "리튬이온 배터리 없음", [], "—", "");
+
+    if (s.cam) {
+      if (publicPlace) {
+        add("req", "촬영 사실 표시 (이동형 영상정보처리기기)", `${outdoor ? "보도" : "누구나 드나드는 장소"}에서 카메라로 사람을 촬영 → 불빛·소리·안내판으로 촬영 사실 표시. 화장실·탈의실 등은 촬영 금지`, [LAW.pipa], "운영자 (표시 장치 설계는 제조사)", "①③");
+      } else {
+        const where = { work: "사업장(공장·물류센터) 내부", restricted: "출입이 통제되는 건물", home: "가정 내부" }[s.place] || "이 장소";
+        add("rev", "촬영 사실 표시 (이동형 영상정보처리기기)", `${where}는 공개된 장소가 아닐 가능성이 높아 제25조의2 적용이 약함. 일반인이 드나드는 구역이 있으면 달라짐`, [LAW.pipa], "운영자", "③");
+        if (work) oos.push("근로자 영상의 개인정보 처리 (근로자 동의 등): 판단기준 범위 밖입니다.");
+      }
+      if (s.learn) add(publicPlace ? "req" : "rev", "촬영 영상의 AI 학습 활용", "로봇 외부에 촬영 사실과 구체적 내용을 표시", [LAW.pipa, NOTE.pipaGuide], "운영자·제조사", "①③");
+    } else {
+      add("na", "촬영 사실 표시", "카메라 없음", [], "—", "");
+    }
+
+    if (s.ai === "none") {
+      add("na", "인공지능 기본법", "AI 기능 없음", [LAW.aiLaw], "—", "");
+    } else {
+      add("req", "고영향 AI 사전 검토 수행", "AI 기능이 있으면 고영향 해당 여부와 관계없이 검토하고 기록을 남겨야 함. 판단이 어려우면 과기정통부에 확인 요청 가능 (2026.1.22 시행, 과태료 1년 유예)", [LAW.ai33], "제조사(개발사업자)", "①");
+      let why, check = "";
+      if (s.ai === "medical") { why = "의료·재활 목적이면 의료기기 영역에 해당할 수 있음. 고영향이면 위험관리·설명·이용자 보호·사람의 감독 책무"; check = "의료기기 해당 여부"; }
+      else if (outdoor) { why = "실외이동로봇은 보행자 지위라 법정 영역인 '교통'에 드는지 불명확. 단정하지 않음"; check = "교통 영역 해당 여부"; }
+      else if (s.ai === "genai") { why = "대화 기능만으로는 법정 영역 해당 가능성이 낮음. 용도(의료·채용 등)에 따라 달라짐"; }
+      else { why = "인식·판단 기능만으로는 법정 영역(에너지, 보건의료, 교통 등) 해당 가능성이 낮음. 사전 검토는 하되 고영향으로 단정하지 않음"; }
+      add("rev", "고영향 AI 해당 여부", why, [LAW.ai33, LAW.ai34, NOTE.aiGuide], "제조사·운영자", "①③", check);
+      if (s.ai === "genai") add("rev", "생성형 AI 사용 고지", "대화형 생성형 AI를 쓰는 서비스는 이용자에게 사전 고지 검토", [LAW.aiLaw], "운영자(이용사업자)", "③");
+    }
+    add("ref", "제조물 책임", "설계·제조·표시상 결함 책임. 경고 표시·사용설명서의 위험 안내 누락은 표시상 결함 쟁점", [LAW.pl], "제조사", "①");
+
+    if (s.cam || s.wireless || s.ai !== "none") {
+      const layers = [s.cam && "카메라 → 개인정보", s.wireless && "무선 → 전파법", s.ai !== "none" && "AI 기능 → 인공지능 기본법"].filter(Boolean);
+      cross.push("본체 인증 외에 공통 레이어가 겹칩니다: " + layers.join(", ") + ".");
+    }
+    oos.push("해외 인증(CE, UL), 의료기기 인허가, 중대재해처벌법: 판단기준 범위 밖입니다.");
+
+    const order = { req: 0, rev: 1, na: 2, ref: 3 };
+    items.sort((a, b) => order[a.v] - order[b.v]);
+    const tally = { req: 0, rev: 0, na: 0 };
+    items.forEach(i => { if (i.v in tally) tally[i.v]++; });
+    return { types, items, cross, checks: [...new Set(checks)], oos, tally };
+  }
+
+  const PRESETS = {
+    T1: { label: "실외 순찰로봇", move: "outdoor", mass: 80, speed: 6, arm: "none", collab: false, ee: false, place: "public", elev: false, cam: true, learn: false, wireless: true, batt: true, ai: "perception" },
+    T2: { label: "엘리베이터 타는 청소로봇", move: "indoor", mass: 90, speed: 3.6, arm: "none", collab: false, ee: false, place: "restricted", elev: true, cam: true, learn: false, wireless: true, batt: true, ai: "none" },
+    T3: { label: "펜스 없는 협동로봇", move: "none", mass: 0, speed: 0, arm: "ge3", collab: true, ee: true, place: "work", elev: false, cam: false, learn: false, wireless: false, batt: false, ai: "none" },
+    T4: { label: "물류 모바일 매니퓰레이터", move: "indoor", mass: 250, speed: 5.4, arm: "ge3", collab: true, ee: false, place: "work", elev: false, cam: true, learn: false, wireless: true, batt: true, ai: "perception" },
+    T5: { label: "대형 고속 배송로봇", move: "road", mass: 600, speed: 20, arm: "none", collab: false, ee: false, place: "public", elev: false, cam: true, learn: false, wireless: true, batt: false, ai: "none" },
+  };
+  root.PrecheckEngine = { evaluate, PRESETS };
+  if (typeof module !== "undefined") module.exports = root.PrecheckEngine;
+})(typeof window !== "undefined" ? window : globalThis);
+
+</script>
+<script>
+(function(){
+  var E=window.PrecheckEngine, $=function(id){return document.getElementById(id);};
+  var esc=function(x){return String(x==null?"":x).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});};
+  var VL={req:["s-req","필수"],rev:["s-rev","검토 필요"],na:["s-na","해당 없음"],ref:["s-ref","참고"]};
+  var F=["move","mass","speed","arm","collab","ee","place","elev","cam","learn","wireless","batt","ai"];
+  function read(){var s={};F.forEach(function(k){var el=$("f-"+k); s[k]=el.type==="checkbox"?el.checked:(el.type==="number"?parseFloat(el.value)||0:el.value);});return s;}
+  function fill(p){F.forEach(function(k){var el=$("f-"+k); if(el.type==="checkbox") el.checked=!!p[k]; else el.value=p[k];});}
+  function sync(){
+    var s=read(), out=s.move==="outdoor"||s.move==="road";
+    $("massRow").style.display=out?"":"none";
+    $("armChecks").style.display=s.arm==="ge3"?"":"none";
+    $("elevL").className=s.move==="indoor"?"":"off"; $("f-elev").disabled=s.move!=="indoor";
+    $("learnL").className=s.cam?"":"off"; $("f-learn").disabled=!s.cam;
+    $("f-place").disabled=out;
+    if(out) $("f-place").value="public";
+  }
+  function refs(r){return r.map(function(x){return Array.isArray(x)?'<a href="'+esc(x[1])+'" target="_blank" rel="noopener">'+esc(x[0])+'</a>':'<span>'+esc(x)+'</span>';}).join("")||'<span>—</span>';}
+  function render(){
+    sync();
+    var s=read(), r=E.evaluate(Object.assign({},s,{ collab:s.arm==="ge3"&&s.collab, ee:s.arm==="ge3"&&s.ee, elev:s.move==="indoor"&&s.elev, learn:s.cam&&s.learn }));
+    var rows=r.items.map(function(i){var v=VL[i.v];return '<tr><td><span class="stamp '+v[0]+'">'+v[1]+'</span></td><td><b>'+esc(i.t)+'</b>'+(i.who&&i.who!=="—"?'<span class="who">'+esc(i.who)+(i.stage?' · '+esc(i.stage):'')+'</span>':'')+(i.check?'<span class="todo">확인 필요</span>':'')+'</td><td>'+esc(i.why)+'</td><td class="refs">'+refs(i.refs)+'</td></tr>';}).join("");
+    $("out").innerHTML=
+      '<div class="out-h"><div class="types">'+r.types.map(function(t){return '<span>'+esc(t)+'</span>';}).join("")+'</div>'+
+      '<div class="tally"><span class="stamp s-req">필수 '+r.tally.req+'</span><span class="stamp s-rev">검토 필요 '+r.tally.rev+'</span><span class="stamp s-na">해당 없음 '+r.tally.na+'</span></div></div>'+
+      '<div class="tbl"><table><thead><tr><th>판정</th><th>항목 · 주체 · 단계</th><th>판정 이유</th><th>근거</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
+      (r.cross.length?'<div class="box"><h4>교차 판단</h4><ul>'+r.cross.map(function(c){return '<li>'+esc(c)+'</li>';}).join("")+'</ul></div>':'')+
+      (r.checks.length?'<div class="box chk"><h4>확인 필요 (결론에서 뺀 항목)</h4><ul>'+r.checks.map(function(c){return '<li>'+esc(c)+'</li>';}).join("")+'</ul></div>':'')+
+      '<div class="box"><h4>범위 밖 (판정하지 않음)</h4><ul>'+r.oos.map(function(c){return '<li>'+esc(c)+'</li>';}).join("")+'</ul></div>'+
+      '<p class="vs">실제 스킬과의 차이: 체험판은 고른 값으로만 규칙을 적용합니다. 실제 스킬은 Claude가 빠진 사양을 되묻고, 같은 기준으로 판정한 뒤 판단기준에 없는 해석은 💡추론·💡제안으로 구분해 덧붙입니다. ① 제조·출시 ② 현장 설치 ③ 운영·유지보수. 사전 점검 자료이며 법률 자문이 아닙니다.</p>';
+  }
+  var pre=$("presets");
+  Object.keys(E.PRESETS).forEach(function(k){var b=document.createElement("button"); b.type="button"; b.textContent=k+" · "+E.PRESETS[k].label; b.dataset.k=k;
+    b.addEventListener("click",function(){fill(E.PRESETS[k]); pre.querySelectorAll("button").forEach(function(x){x.setAttribute("aria-pressed",String(x===b));}); render();}); pre.appendChild(b);});
+  $("specForm").addEventListener("input",function(){pre.querySelectorAll("button").forEach(function(x){x.setAttribute("aria-pressed","false");}); render();});
+  $("specForm").addEventListener("change",function(){pre.querySelectorAll("button").forEach(function(x){x.setAttribute("aria-pressed","false");}); render();});
+  pre.firstChild.click();
+})();
+(function(){
+  var root=document.documentElement, KEY="skillpage-theme";
+  try{ var t=localStorage.getItem(KEY); if(t==="dark"||t==="light") root.dataset.theme=t; }catch(e){}
+  var btn=document.getElementById("theme");
+  if(btn) btn.addEventListener("click",function(){
+    var cur=root.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");
+    var next=cur==="dark"?"light":"dark"; root.dataset.theme=next;
+    try{ localStorage.setItem(KEY,next); }catch(e){}
+  });
+})();
+</script>
+
+</body>
+</html>
